@@ -9,6 +9,18 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from config import (MIN_ALTURA, MAX_ALTURA, MIN_DISTANCIA, MAX_DISTANCIA,
                    MIN_VELOCIDAD, MAX_VELOCIDAD, MIN_ANGULO, MAX_ANGULO, MIN_DELAY, MAX_DELAY)
 
+def validar_entrada_numerica(P):
+    """
+    Valida que la entrada sea un número válido
+    """
+    if P == "" or P == "-":  # Permitir campo vacío y signo negativo
+        return True
+    try:
+        float(P)
+        return True
+    except ValueError:
+        return False
+
 def crear_panel_control(parent, simulacion):
     """
     Crea el panel de control con los ajustes de la simulación
@@ -17,57 +29,55 @@ def crear_panel_control(parent, simulacion):
     panel_controles = ttk.LabelFrame(parent, text="Parámetros de Simulación")
     panel_controles.pack(side=tk.TOP, fill=tk.X, padx=10, pady=5)
     
+    # Validación para entradas numéricas
+    vcmd = parent.register(validar_entrada_numerica)
+    
     # Controles para altura del misil enemigo
     ttk.Label(panel_controles, text="Altura del misil enemigo (km):").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-    escala_altura = ttk.Scale(panel_controles, from_=MIN_ALTURA, to=MAX_ALTURA, 
-                           length=200, value=simulacion.altura_enemigo, command=simulacion.actualizar_altura)
-    escala_altura.grid(row=0, column=1, padx=5, pady=5)
-    valor_altura = ttk.Label(panel_controles, text=f"{simulacion.altura_enemigo:.1f}")
-    valor_altura.grid(row=0, column=2, padx=5, pady=5)
-    simulacion.etiqueta_altura = valor_altura
+    entrada_altura = ttk.Entry(panel_controles, width=10, validate='all', validatecommand=(vcmd, '%P'))
+    entrada_altura.insert(0, f"{simulacion.altura_enemigo:.1f}")
+    entrada_altura.grid(row=0, column=1, padx=5, pady=5)
+    entrada_altura.bind('<Return>', lambda e: simulacion.actualizar_altura(entrada_altura.get()))
+    entrada_altura.bind('<FocusOut>', lambda e: simulacion.actualizar_altura(entrada_altura.get()))
     
     # Controles para la distancia de defensa
     ttk.Label(panel_controles, text="Distancia horizontal (km):").grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
-    escala_distancia = ttk.Scale(panel_controles, from_=MIN_DISTANCIA, to=MAX_DISTANCIA, 
-                             length=200, value=simulacion.distancia_defensa, command=simulacion.actualizar_distancia)
-    escala_distancia.grid(row=1, column=1, padx=5, pady=5)
-    valor_distancia = ttk.Label(panel_controles, text=f"{simulacion.distancia_defensa:.1f}")
-    valor_distancia.grid(row=1, column=2, padx=5, pady=5)
-    simulacion.etiqueta_distancia = valor_distancia
+    entrada_distancia = ttk.Entry(panel_controles, width=10, validate='all', validatecommand=(vcmd, '%P'))
+    entrada_distancia.insert(0, f"{simulacion.distancia_defensa:.1f}")
+    entrada_distancia.grid(row=1, column=1, padx=5, pady=5)
+    entrada_distancia.bind('<Return>', lambda e: simulacion.actualizar_distancia(entrada_distancia.get()))
+    entrada_distancia.bind('<FocusOut>', lambda e: simulacion.actualizar_distancia(entrada_distancia.get()))
     
     # Controles para la velocidad del misil
     ttk.Label(panel_controles, text="Velocidad del misil (km/s):").grid(row=0, column=3, padx=5, pady=5, sticky=tk.W)
-    escala_velocidad = ttk.Scale(panel_controles, from_=MIN_VELOCIDAD, to=MAX_VELOCIDAD, 
-                          length=200, value=simulacion.velocidad_misil, command=simulacion.actualizar_velocidad)
-    escala_velocidad.grid(row=0, column=4, padx=5, pady=5)
-    valor_velocidad = ttk.Label(panel_controles, text=f"{simulacion.velocidad_misil:.1f}")
-    valor_velocidad.grid(row=0, column=5, padx=5, pady=5)
-    simulacion.etiqueta_velocidad = valor_velocidad
+    entrada_velocidad = ttk.Entry(panel_controles, width=10, validate='all', validatecommand=(vcmd, '%P'))
+    entrada_velocidad.insert(0, f"{simulacion.velocidad_misil:.1f}")
+    entrada_velocidad.grid(row=0, column=4, padx=5, pady=5)
+    entrada_velocidad.bind('<Return>', lambda e: simulacion.actualizar_velocidad(entrada_velocidad.get()))
+    entrada_velocidad.bind('<FocusOut>', lambda e: simulacion.actualizar_velocidad(entrada_velocidad.get()))
     
     # Controles para el ángulo del misil
     ttk.Label(panel_controles, text="Ángulo de lanzamiento (°):").grid(row=1, column=3, padx=5, pady=5, sticky=tk.W)
-    escala_angulo = ttk.Scale(panel_controles, from_=MIN_ANGULO, to=MAX_ANGULO, 
-                          length=200, value=simulacion.angulo_misil, command=simulacion.actualizar_angulo)
-    escala_angulo.grid(row=1, column=4, padx=5, pady=5)
-    valor_angulo = ttk.Label(panel_controles, text=f"{simulacion.angulo_misil:.1f}")
-    valor_angulo.grid(row=1, column=5, padx=5, pady=5)
-    simulacion.etiqueta_angulo = valor_angulo
+    entrada_angulo = ttk.Entry(panel_controles, width=10, validate='all', validatecommand=(vcmd, '%P'))
+    entrada_angulo.insert(0, f"{simulacion.angulo_misil:.1f}")
+    entrada_angulo.grid(row=1, column=4, padx=5, pady=5)
+    entrada_angulo.bind('<Return>', lambda e: simulacion.actualizar_angulo(entrada_angulo.get()))
+    entrada_angulo.bind('<FocusOut>', lambda e: simulacion.actualizar_angulo(entrada_angulo.get()))
     
     # Controles para el delay de lanzamiento
     ttk.Label(panel_controles, text="Delay de lanzamiento (s):").grid(row=2, column=0, padx=5, pady=5, sticky=tk.W)
-    escala_delay = ttk.Scale(panel_controles, from_=MIN_DELAY, to=MAX_DELAY, 
-                          length=200, value=simulacion.delay_lanzamiento, command=simulacion.actualizar_delay)
-    escala_delay.grid(row=2, column=1, padx=5, pady=5)
-    valor_delay = ttk.Label(panel_controles, text=f"{simulacion.delay_lanzamiento:.1f}")
-    valor_delay.grid(row=2, column=2, padx=5, pady=5)
-    simulacion.etiqueta_delay = valor_delay
+    entrada_delay = ttk.Entry(panel_controles, width=10, validate='all', validatecommand=(vcmd, '%P'))
+    entrada_delay.insert(0, f"{simulacion.delay_lanzamiento:.1f}")
+    entrada_delay.grid(row=2, column=1, padx=5, pady=5)
+    entrada_delay.bind('<Return>', lambda e: simulacion.actualizar_delay(entrada_delay.get()))
+    entrada_delay.bind('<FocusOut>', lambda e: simulacion.actualizar_delay(entrada_delay.get()))
     
-    # Guardar referencias a las escalas
-    simulacion.escala_angulo = escala_angulo
-    simulacion.escala_velocidad = escala_velocidad
-    simulacion.escala_altura = escala_altura
-    simulacion.escala_distancia = escala_distancia
-    simulacion.escala_delay = escala_delay
+    # Guardar referencias a las entradas
+    simulacion.entrada_angulo = entrada_angulo
+    simulacion.entrada_velocidad = entrada_velocidad
+    simulacion.entrada_altura = entrada_altura
+    simulacion.entrada_distancia = entrada_distancia
+    simulacion.entrada_delay = entrada_delay
     
     # Panel de botones
     panel_botones = ttk.Frame(panel_controles)
@@ -138,8 +148,8 @@ def crear_plot(parent, simulacion):
     defensa_posicion, = ejes.plot([], [], 'gs', markersize=10, label='Posición Defensa')
     ciudad_posicion, = ejes.plot([], [], 'r^', markersize=10, label='Ciudad')
     
-    # Añadir leyenda
-    ejes.legend(loc='upper right')
+    # Añadir leyenda en la parte superior izquierda
+    ejes.legend(loc='upper left')
     
     # Incorporar el gráfico en la interfaz
     lienzo = FigureCanvasTkAgg(figura, master=parent)

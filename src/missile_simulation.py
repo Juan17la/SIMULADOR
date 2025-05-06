@@ -1,5 +1,6 @@
 """
 Clase principal para la simulación de interceptación de misiles
+.set_data
 """
 
 import numpy as np
@@ -11,9 +12,9 @@ from config import (DEFAULT_ALTURA_ENEMIGA, DEFAULT_DISTANCIA_DEFENSA,
                    DEFAULT_VELOCIDAD_MISIL, DEFAULT_ANGULO_MISIL,
                    DEFAULT_DELAY_LANZAMIENTO, INCREMENTO_TIEMPO, INTERVALO_ANIMACION,
                    MIN_VELOCIDAD, MAX_VELOCIDAD,
-                   UMBRAL_INTERCEPCION)
+                   UMBRAL_INTERCEPCION, MIN_ALTURA, MAX_ALTURA)
 from physics import calcular_tiempo_vuelo_enemigo, calcular_posicion_enemigo, calcular_posicion_misil
-from optimizer import encontrar_parametros_optimos
+from optimizer import encontrar_parametros_optimos, validar_impacto_suelo, validar_altura_intercepcion
 from ui_components import crear_panel_control, crear_info_panel, crear_plot, mostrar_valores_optimos
 
 # Configurar backend de matplotlib
@@ -66,36 +67,71 @@ class SimuladorMisiles:
     
     def actualizar_altura(self, valor):
         """Actualiza la altura del misil enemigo"""
-        self.altura_enemigo = float(valor)
-        self.etiqueta_altura.config(text=f"{self.altura_enemigo:.1f}")
-        self.tiempo_vuelo_enemigo = calcular_tiempo_vuelo_enemigo(self.altura_enemigo)
-        self.actualizar_limites_plot()
-        self.reiniciar_simulacion()
+        try:
+            nuevo_valor = float(valor)
+            if MIN_ALTURA <= nuevo_valor <= MAX_ALTURA:
+                self.altura_enemigo = nuevo_valor
+                self.entrada_altura.delete(0, tk.END)
+                self.entrada_altura.insert(0, f"{self.altura_enemigo:.1f}")
+                self.tiempo_vuelo_enemigo = calcular_tiempo_vuelo_enemigo(self.altura_enemigo)
+                self.actualizar_limites_plot()
+                self.reiniciar_simulacion()
+        except ValueError:
+            self.entrada_altura.delete(0, tk.END)
+            self.entrada_altura.insert(0, f"{self.altura_enemigo:.1f}")
     
     def actualizar_distancia(self, valor):
         """Actualiza la distancia horizontal"""
-        self.distancia_defensa = float(valor)
-        self.etiqueta_distancia.config(text=f"{self.distancia_defensa:.1f}")
-        self.actualizar_limites_plot()
-        self.reiniciar_simulacion()
+        try:
+            nuevo_valor = float(valor)
+            if nuevo_valor > 0:
+                self.distancia_defensa = nuevo_valor
+                self.entrada_distancia.delete(0, tk.END)
+                self.entrada_distancia.insert(0, f"{self.distancia_defensa:.1f}")
+                self.actualizar_limites_plot()
+                self.reiniciar_simulacion()
+        except ValueError:
+            self.entrada_distancia.delete(0, tk.END)
+            self.entrada_distancia.insert(0, f"{self.distancia_defensa:.1f}")
     
     def actualizar_velocidad(self, valor):
         """Actualiza la velocidad del misil antiaéreo"""
-        self.velocidad_misil = float(valor)
-        self.etiqueta_velocidad.config(text=f"{self.velocidad_misil:.1f}")
-        self.reiniciar_simulacion()
+        try:
+            nuevo_valor = float(valor)
+            if MIN_VELOCIDAD <= nuevo_valor <= MAX_VELOCIDAD:
+                self.velocidad_misil = nuevo_valor
+                self.entrada_velocidad.delete(0, tk.END)
+                self.entrada_velocidad.insert(0, f"{self.velocidad_misil:.1f}")
+                self.reiniciar_simulacion()
+        except ValueError:
+            self.entrada_velocidad.delete(0, tk.END)
+            self.entrada_velocidad.insert(0, f"{self.velocidad_misil:.1f}")
     
     def actualizar_angulo(self, valor):
         """Actualiza el ángulo de lanzamiento del misil antiaéreo"""
-        self.angulo_misil = float(valor)
-        self.etiqueta_angulo.config(text=f"{self.angulo_misil:.1f}")
-        self.reiniciar_simulacion()
+        try:
+            nuevo_valor = float(valor)
+            if 0 <= nuevo_valor <= 90:
+                self.angulo_misil = nuevo_valor
+                self.entrada_angulo.delete(0, tk.END)
+                self.entrada_angulo.insert(0, f"{self.angulo_misil:.1f}")
+                self.reiniciar_simulacion()
+        except ValueError:
+            self.entrada_angulo.delete(0, tk.END)
+            self.entrada_angulo.insert(0, f"{self.angulo_misil:.1f}")
     
     def actualizar_delay(self, valor):
         """Actualiza el delay de lanzamiento del misil antiaéreo"""
-        self.delay_lanzamiento = float(valor)
-        self.etiqueta_delay.config(text=f"{self.delay_lanzamiento:.1f}")
-        self.reiniciar_simulacion()
+        try:
+            nuevo_valor = float(valor)
+            if nuevo_valor >= 0:
+                self.delay_lanzamiento = nuevo_valor
+                self.entrada_delay.delete(0, tk.END)
+                self.entrada_delay.insert(0, f"{self.delay_lanzamiento:.1f}")
+                self.reiniciar_simulacion()
+        except ValueError:
+            self.entrada_delay.delete(0, tk.END)
+            self.entrada_delay.insert(0, f"{self.delay_lanzamiento:.1f}")
     
     def reiniciar_simulacion(self):
         """Reinicia la simulación a su estado inicial"""
@@ -145,7 +181,7 @@ class SimuladorMisiles:
                 interval=INTERVALO_ANIMACION, 
                 blit=False, 
                 repeat=False,
-                cache_frame_data=False  # Agregar esta línea
+                cache_frame_data=False  
             )
             self.lienzo.draw()
     
@@ -167,20 +203,19 @@ class SimuladorMisiles:
                 self.distancia_defensa,
                 MIN_VELOCIDAD,
                 MAX_VELOCIDAD,
-                self.delay_lanzamiento  # Pasamos el delay actual como parámetro
+                self.delay_lanzamiento
             )
             
             if resultado.success and resultado.fun < UMBRAL_INTERCEPCION:
-                # Extraer los valores optimizados (ahora solo ángulo, velocidad y tiempo)
+                # Extraer los valores optimizados
                 angulo_opt, vel_opt, tiempo_opt = resultado.x
                 
-                # Actualizar los controles con los valores optimizados
-                self.escala_angulo.set(angulo_opt)
-                self.escala_velocidad.set(vel_opt)
+                # Actualizar los campos de entrada directamente
+                self.entrada_angulo.delete(0, tk.END)
+                self.entrada_angulo.insert(0, f"{angulo_opt:.1f}")
                 
-                # Actualizar las etiquetas
-                self.etiqueta_angulo.config(text=f"{angulo_opt:.1f}")
-                self.etiqueta_velocidad.config(text=f"{vel_opt:.1f}")
+                self.entrada_velocidad.delete(0, tk.END)
+                self.entrada_velocidad.insert(0, f"{vel_opt:.1f}")
                 
                 # Actualizar los valores internos
                 self.angulo_misil = angulo_opt
@@ -221,15 +256,17 @@ class SimuladorMisiles:
         # Calcular posición del misil enemigo (caída libre)
         altura_enemigo = calcular_posicion_enemigo(self.altura_enemigo, self.tiempo)
         
-        # Si el misil enemigo llega al suelo, registrar impacto
-        if altura_enemigo <= 0 and not self.impacto_enemigo:
+        # Verificar si el misil enemigo impactó el suelo
+        if validar_impacto_suelo(altura_enemigo) and not self.impacto_enemigo:
             self.impacto_enemigo = True
             self.etiqueta_info.config(text="¡El misil enemigo impactó en la ciudad!")
+            self.detener_simulacion()
+            return
                 
         self.enemigo_x.append(self.distancia_defensa)
         self.enemigo_y.append(altura_enemigo)
         
-        # Calcular posición del misil antiaéreo (considerando el delay)
+        # Calcular posición del misil antiaéreo
         misil_x, misil_y = calcular_posicion_misil(
             self.angulo_misil, 
             self.velocidad_misil, 
@@ -242,17 +279,22 @@ class SimuladorMisiles:
         
         # Verificar intercepción
         if not self.intercepcion and not self.impacto_enemigo:
-            # Calcular distancia entre los misiles
             dx = self.misil_x[-1] - self.enemigo_x[-1]
             dy = self.misil_y[-1] - self.enemigo_y[-1]
             distancia = np.sqrt(dx**2 + dy**2)
             
-            # Umbral de intercepción
+            # Verificar umbral de intercepción y altura mínima
             if distancia < UMBRAL_INTERCEPCION:
-                self.intercepcion = True
-                self.etiqueta_info.config(
-                    text=f"¡Intercepción exitosa a {self.enemigo_y[-1]:.2f} km de altura y {self.tiempo:.2f} segundos!"
-                )
+                if validar_altura_intercepcion(self.enemigo_y[-1]):
+                    self.intercepcion = True
+                    self.etiqueta_info.config(
+                        text=f"¡Intercepción exitosa a {self.enemigo_y[-1]:.2f} km de altura y {self.tiempo:.2f} segundos!"
+                    )
+                else:
+                    self.etiqueta_info.config(
+                        text="Intercepción fallida: altura demasiado baja (< 0.1 km)"
+                    )
+                    self.detener_simulacion()
         
         # Actualizar datos del gráfico
         self.linea_enemigo.set_data(self.enemigo_x, self.enemigo_y)
