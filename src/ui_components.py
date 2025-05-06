@@ -6,8 +6,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from config import (MIN_ALTURA, MAX_ALTURA, MIN_DISTANCIA, MAX_DISTANCIA,
-                   MIN_VELOCIDAD, MAX_VELOCIDAD, MIN_ANGULO, MAX_ANGULO, MIN_DELAY, MAX_DELAY)
+from config import (COLUMNAS_HISTORIAL, MAX_HISTORIAL_SIMULACIONES)
 
 def validar_entrada_numerica(P):
     """
@@ -174,6 +173,55 @@ def crear_plot(parent, simulacion):
     lienzo.draw_idle()
     
     return lienzo
+
+def crear_historial_panel(parent, simulacion):
+    """
+    Crea el panel de historial de lanzamientos
+    """
+    # Frame contenedor para el historial
+    frame_historial = ttk.LabelFrame(parent, text="Historial de Lanzamientos")
+    frame_historial.pack(side=tk.RIGHT, fill=tk.BOTH, padx=10, pady=5)
+
+    # Crear Treeview
+    columnas = ("Altura", "Distancia", "Velocidad", "Ángulo", "Delay", "Resultado")
+    tabla = ttk.Treeview(frame_historial, columns=columnas, show='headings', height=15)
+
+    # Configurar columnas
+    anchos = {
+        "Altura": 70,
+        "Distancia": 70,
+        "Velocidad": 70,
+        "Ángulo": 70,
+        "Delay": 70,
+        "Resultado": 120
+    }
+
+    for col in columnas:
+        tabla.heading(col, text=col)
+        tabla.column(col, width=anchos[col])
+
+    # Scrollbars
+    scrolly = ttk.Scrollbar(frame_historial, orient=tk.VERTICAL, command=tabla.yview)
+    scrollx = ttk.Scrollbar(frame_historial, orient=tk.HORIZONTAL, command=tabla.xview)
+    tabla.configure(yscrollcommand=scrolly.set, xscrollcommand=scrollx.set)
+
+    # Layout
+    tabla.grid(row=0, column=0, sticky='nsew')
+    scrolly.grid(row=0, column=1, sticky='ns')
+    scrollx.grid(row=1, column=0, sticky='ew')
+
+    # Botón para limpiar historial
+    btn_limpiar = ttk.Button(
+        frame_historial,
+        text="Limpiar Historial",
+        command=lambda: tabla.delete(*tabla.get_children())
+    )
+    btn_limpiar.grid(row=2, column=0, pady=5)
+
+    frame_historial.grid_columnconfigure(0, weight=1)
+    frame_historial.grid_rowconfigure(0, weight=1)
+
+    return tabla
 
 def mostrar_valores_optimos(resultado, tiempo, altura):
     """

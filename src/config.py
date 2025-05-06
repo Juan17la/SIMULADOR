@@ -12,7 +12,7 @@ INTERVALO_ANIMACION = 50  # milisegundos
 UMBRAL_INTERCEPCION = 0.1  # km
 
 # Límites de los controles
-MIN_ALTURA = 0.5  # km
+MIN_ALTURA = 5  # km
 MAX_ALTURA = 20.0  # km
 MIN_DISTANCIA = 0.5  # km
 MAX_DISTANCIA = 150.0  # km
@@ -22,3 +22,10 @@ MIN_ANGULO = 5  # grados
 MAX_ANGULO = 90  # grados
 MIN_DELAY = 0.0  # segundos
 MAX_DELAY = 10.0  # segundos
+
+# Configuración del historial de simulaciones
+MAX_HISTORIAL_SIMULACIONES = 50
+COLUMNAS_HISTORIAL = [
+    "Tiempo (s)", "Altura (km)", "Distancia (km)", 
+    "Velocidad (km/s)", "Ángulo (°)", "Delay (s)", "Resultado"
+]

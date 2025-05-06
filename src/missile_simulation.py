@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib
 from matplotlib.animation import FuncAnimation
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 from config import (DEFAULT_ALTURA_ENEMIGA, DEFAULT_DISTANCIA_DEFENSA,
                    DEFAULT_VELOCIDAD_MISIL, DEFAULT_ANGULO_MISIL,
                    DEFAULT_DELAY_LANZAMIENTO, INCREMENTO_TIEMPO, INTERVALO_ANIMACION,
@@ -15,7 +15,7 @@ from config import (DEFAULT_ALTURA_ENEMIGA, DEFAULT_DISTANCIA_DEFENSA,
                    UMBRAL_INTERCEPCION, MIN_ALTURA, MAX_ALTURA)
 from physics import calcular_tiempo_vuelo_enemigo, calcular_posicion_enemigo, calcular_posicion_misil
 from optimizer import encontrar_parametros_optimos, validar_impacto_suelo, validar_altura_intercepcion
-from ui_components import crear_panel_control, crear_info_panel, crear_plot, mostrar_valores_optimos
+from ui_components import crear_panel_control, crear_info_panel, crear_plot, mostrar_valores_optimos, crear_historial_panel
 
 # Configurar backend de matplotlib
 matplotlib.use("TkAgg")
@@ -25,7 +25,15 @@ class SimuladorMisiles:
         """Constructor de la clase SimuladorMisiles"""
         self.root = root
         self.root.title("Simulador de Interceptación de Misiles")
-        self.root.geometry("1000x800")
+        self.root.geometry("1400x800")  # Aumentamos el ancho para el historial
+        
+        # Crear frame principal para organizar los elementos
+        self.frame_principal = ttk.Frame(self.root)
+        self.frame_principal.pack(fill=tk.BOTH, expand=True)
+        
+        # Frame izquierdo para controles y gráfica
+        self.frame_izquierdo = ttk.Frame(self.frame_principal)
+        self.frame_izquierdo.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
         # Inicializar parámetros
         self.altura_enemigo = DEFAULT_ALTURA_ENEMIGA
@@ -52,9 +60,10 @@ class SimuladorMisiles:
         self.tiempo_vuelo_enemigo = calcular_tiempo_vuelo_enemigo(self.altura_enemigo)
         
         # Crear componentes de UI
-        crear_panel_control(self.root, self)
-        crear_info_panel(self.root, self)
-        crear_plot(self.root, self)
+        crear_panel_control(self.frame_izquierdo, self)
+        crear_info_panel(self.frame_izquierdo, self)
+        crear_plot(self.frame_izquierdo, self)
+        self.tabla_historial = crear_historial_panel(self.frame_principal, self)
         
         # Inicializar elementos gráficos
         self.reiniciar_simulacion()
@@ -191,8 +200,34 @@ class SimuladorMisiles:
             self.simulacion_activa = False
             if self.anim and self.anim.event_source:
                 self.anim.event_source.stop()
+            
+            # Guardar resultado en el historial
+            if self.intercepcion:
+                resultado = f"Interceptado a {self.tiempo:.1f}s"
+            elif self.impacto_enemigo:
+                resultado = "Impacto en ciudad"
+            else:
+                resultado = "Fallido"
+            
+            self.guardar_en_historial(resultado)
+            
             self.boton_iniciar.config(state=tk.NORMAL)
             self.boton_detener.config(state=tk.DISABLED)
+    
+    def guardar_en_historial(self, resultado):
+        """
+        Guarda los datos del lanzamiento actual en el historial
+        """
+        valores = (
+            f"{self.altura_enemigo:.1f}",
+            f"{self.distancia_defensa:.1f}",
+            f"{self.velocidad_misil:.1f}",
+            f"{self.angulo_misil:.1f}",
+            f"{self.delay_lanzamiento:.1f}",
+            resultado
+        )
+        # Insertar al inicio de la tabla
+        self.tabla_historial.insert('', 0, values=valores)
     
     def calcular_parametros_optimos(self):
         """Calcula los parámetros óptimos para interceptar el misil enemigo"""
