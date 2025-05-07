@@ -12,7 +12,7 @@ from config import (DEFAULT_ALTURA_ENEMIGA, DEFAULT_DISTANCIA_DEFENSA,
                    DEFAULT_VELOCIDAD_MISIL, DEFAULT_ANGULO_MISIL,
                    DEFAULT_DELAY_LANZAMIENTO, INCREMENTO_TIEMPO, INTERVALO_ANIMACION,
                    MIN_VELOCIDAD, MAX_VELOCIDAD,
-                   UMBRAL_INTERCEPCION, MIN_ALTURA, MAX_ALTURA)
+                   UMBRAL_INTERCEPCION, MIN_ALTURA, MAX_ALTURA, MIN_ANGULO, MAX_ANGULO)
 from physics import calcular_tiempo_vuelo_enemigo, calcular_posicion_enemigo, calcular_posicion_misil
 from optimizer import encontrar_parametros_optimos, validar_impacto_suelo, validar_altura_intercepcion
 from ui_components import crear_panel_control, crear_info_panel, crear_plot, mostrar_valores_optimos, crear_historial_panel
@@ -119,13 +119,25 @@ class SimuladorMisiles:
     def actualizar_angulo(self, valor):
         """Actualiza el ángulo de lanzamiento del misil antiaéreo"""
         try:
+            # Convertir explícitamente a float y validar el rango
             nuevo_valor = float(valor)
-            if 0 <= nuevo_valor <= 90:
-                self.angulo_misil = nuevo_valor
+            if MIN_ANGULO <= nuevo_valor <= MAX_ANGULO:
+                # Actualizar el valor interno primero
+                self.angulo_misil = float(nuevo_valor)  # Asegurar que es float
+                
+                # Actualizar la entrada después de la validación
                 self.entrada_angulo.delete(0, tk.END)
                 self.entrada_angulo.insert(0, f"{self.angulo_misil:.1f}")
+                
+                # Reiniciar simulación con el nuevo valor
                 self.reiniciar_simulacion()
+            else:
+                # Restaurar el valor anterior si está fuera de rango
+                self.entrada_angulo.delete(0, tk.END)
+                self.entrada_angulo.insert(0, f"{self.angulo_misil:.1f}")
+                messagebox.showerror("Error", f"El ángulo debe estar entre {MIN_ANGULO}° y {MAX_ANGULO}°")
         except ValueError:
+            # Restaurar el valor anterior si hay error de conversión
             self.entrada_angulo.delete(0, tk.END)
             self.entrada_angulo.insert(0, f"{self.angulo_misil:.1f}")
     
@@ -203,7 +215,7 @@ class SimuladorMisiles:
             
             # Guardar resultado en el historial
             if self.intercepcion:
-                resultado = f"Interceptado a {self.tiempo:.1f}s"
+                resultado = f"Interceptado a {self.tiempo:.1f}s y {self.enemigo_y[-1]:.2f} km"
             elif self.impacto_enemigo:
                 resultado = "Impacto en ciudad"
             else:

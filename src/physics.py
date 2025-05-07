@@ -22,33 +22,26 @@ def calcular_posicion_enemigo(altura_inicial, tiempo):
 def calcular_posicion_misil(angulo, velocidad, tiempo, delay):
     """
     Calcula la posición del misil antiaéreo según el movimiento parabólico
-    considerando un delay en el lanzamiento
-    
-    Parámetros:
-    - angulo: ángulo de lanzamiento en grados
-    - velocidad: velocidad inicial en km/s
-    - tiempo: tiempo transcurrido desde inicio de simulación
-    - delay: tiempo de espera antes del lanzamiento
     """
-    # Si no ha pasado el tiempo de delay, el misil está en posición inicial
     if tiempo < delay:
         return 0, 0
         
-    # Ajustar el tiempo considerando el delay
+    # Asegurar que el ángulo sea float y convertir a radianes
     tiempo_efectivo = tiempo - delay
+    angulo_rad = np.radians(float(angulo))
     
-    # Convertir ángulo a radianes
-    angulo_rad = np.radians(angulo)
+    # Asegurar que velocidad sea float
+    velocidad = float(velocidad)
     
-    # Componentes de velocidad inicial
+    # Calcular componentes de velocidad
     vx = velocidad * np.cos(angulo_rad)
     vy = velocidad * np.sin(angulo_rad)
     
-    # Posición en función del tiempo efectivo
+    # Calcular posición
     x = vx * tiempo_efectivo
     y = vy * tiempo_efectivo - 0.5 * GRAVEDAD * (tiempo_efectivo ** 2)
     
-    return x, max(0, y)  # No permitir posiciones negativas en Y
+    return x, max(0, y)
 
 def calcular_distancia(x1, y1, x2, y2):
     """

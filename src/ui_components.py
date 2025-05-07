@@ -234,7 +234,6 @@ def mostrar_valores_optimos(resultado, tiempo, altura):
         f"Ángulo: {angulo_optimo:.1f}°\n"
         f"Velocidad: {velocidad_optima:.1f} km/s\n"
         f"Tiempo estimado de interceptación: {tiempo_optimo:.1f} s\n"
-        f"Altura de interceptación: {altura:.1f} km\n"
-        f"Tiempo de vuelo del misil enemigo: {tiempo:.1f} s\n")
+        f"Altura de interceptación: {altura:.1f} km\n")
     
     messagebox.showinfo("Resultados de la Optimización", mensaje)

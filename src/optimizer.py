@@ -96,7 +96,7 @@ def encontrar_parametros_optimos(altura_enemigo, distancia_enemigo, min_velocida
         x0,
         method='SLSQP',
         bounds=bounds,
-        options={'ftol': 1e-6, 'maxiter': 10000}
+        options={'ftol': 1e-6, 'maxiter': 100000}
     )
     
     return resultado
